@@ -1,0 +1,42 @@
+class Neokikoeru < Formula
+  desc "Cloud storage-based web media player for DLsite voice works"
+  homepage "https://github.com/vscodev/neokikoeru"
+  version "{{.Version}}"
+
+  if OS.mac?
+    if Hardware::CPU.arm? || Hardware::CPU.in_rosetta2?
+      url "{{.DownloadUrlMacosArm64}}"
+      sha256 "{{.Sha256MacosArm64}}"
+    else
+      url "{{.DownloadUrlMacosAmd64}}"
+      sha256 "{{.Sha256MacosAmd64}}"
+    end
+  elsif OS.linux?
+    if Hardware::CPU.arm?
+      url "{{.DownloadUrlLinuxArm64}}"
+      sha256 "{{.Sha256LinuxArm64}}"
+    else
+      url "{{.DownloadUrlLinuxAmd64}}"
+      sha256 "{{.Sha256LinuxAmd64}}"
+    end
+  else
+    odie "Unsupported platform. Please submit a bug report here: https://github.com/vscodev/neokikoeru/issues\n#{OS.report}"
+  end
+
+  def install
+    bin.install "neokikoeru"
+    generate_completions_from_executable(bin/"neokikoeru", "completion")
+  end
+
+  service do
+    run [bin/"neokikoeru", "start"]
+    keep_alive crashed: true
+    environment_variables PATH: std_service_path_env
+    log_path var/"log/neokikoeru.log"
+    error_log_path var/"log/neokikoeru.log"
+  end
+
+  test do
+    assert_match "neokikoeru version #{version}", shell_output("#{bin}/neokikoeru -v")
+  end
+end
